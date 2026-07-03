@@ -1,0 +1,64 @@
+name: "rulesentry"
+description: "Catch hidden and invisible-unicode instructions smuggled into AI coding-agent config and skill files."
+author: "Mohamed Zhioua"
+branding:
+  icon: "eye"
+  color: "purple"
+
+inputs:
+  paths:
+    description: "Paths to scan (space-separated). Empty = auto-discover agent files under the repo."
+    required: false
+    default: ""
+  fail-on:
+    description: "Minimum severity that fails the job: critical | high | medium | low."
+    required: false
+    default: "medium"
+  min-severity:
+    description: "Minimum severity to report."
+    required: false
+    default: "low"
+  args:
+    description: "Extra arguments passed through to `rulesentry scan`."
+    required: false
+    default: ""
+  version:
+    description: "npm version/tag of rulesentry to run (e.g. latest, 0.1.0)."
+    required: false
+    default: "latest"
+  sarif:
+    description: "Also emit a SARIF file and upload it to GitHub code scanning."
+    required: false
+    default: "false"
+  sarif-file:
+    description: "Path to write the SARIF report to."
+    required: false
+    default: "rulesentry.sarif"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run rulesentry (SARIF)
+      if: ${{ inputs.sarif == 'true' }}
+      shell: bash
+      # Produce SARIF without failing the step so the report always uploads;
+      # the human-readable gate below owns the pass/fail decision.
+      run: |
+        npx --yes rulesentry@${{ inputs.version }} scan ${{ inputs.paths }} \
+          --format sarif --output "${{ inputs.sarif-file }}" \
+          --min-severity "${{ inputs.min-severity }}" ${{ inputs.args }} || true
+
+    - name: Upload SARIF
+      if: ${{ inputs.sarif == 'true' }}
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.sarif-file }}
+        category: rulesentry
+
+    - name: Run rulesentry
+      shell: bash
+      run: |
+        npx --yes rulesentry@${{ inputs.version }} scan ${{ inputs.paths }} \
+          --fail-on "${{ inputs.fail-on }}" \
+          --min-severity "${{ inputs.min-severity }}" \
+          --color ${{ inputs.args }}

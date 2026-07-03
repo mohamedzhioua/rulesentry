@@ -1,0 +1,64 @@
+{
+  "name": "rulesentry",
+  "version": "0.1.0",
+  "description": "Catches hidden and invisible-unicode instructions smuggled into AI coding-agent config and skill files (CLAUDE.md, AGENTS.md, .cursorrules, copilot-instructions.md, MCP, skills). Zero-config.",
+  "keywords": [
+    "security",
+    "ai",
+    "agent",
+    "prompt-injection",
+    "unicode",
+    "invisible-unicode",
+    "zero-width",
+    "bidi",
+    "homoglyph",
+    "claude",
+    "cursor",
+    "copilot",
+    "codex",
+    "mcp",
+    "cli",
+    "sarif",
+    "supply-chain",
+    "rules-file-backdoor"
+  ],
+  "homepage": "https://github.com/mohamedzhioua/rulesentry#readme",
+  "bugs": {
+    "url": "https://github.com/mohamedzhioua/rulesentry/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mohamedzhioua/rulesentry.git"
+  },
+  "license": "Apache-2.0",
+  "author": "Mohamed Zhioua",
+  "type": "module",
+  "bin": {
+    "rulesentry": "dist/cli.js"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build && npm test",
+    "test": "npm run build && npm run build:test && node --test \"dist-test/test/**/*.test.js\"",
+    "test:only": "node --test \"dist-test/test/**/*.test.js\"",
+    "build:test": "tsc -p tsconfig.test.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "scan": "node dist/cli.js scan",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true});require('fs').rmSync('dist-test',{recursive:true,force:true})\""
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^20.14.0"
+  }
+}

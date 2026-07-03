@@ -1,0 +1,7 @@
+# Enforce LF everywhere so byte offsets are stable across platforms.
+* text=auto eol=lf
+
+# The example fixtures carry deliberately-crafted bytes (hidden Unicode).
+# Treat them as binary so no EOL normalization can shift their offsets.
+examples/malicious-CLAUDE.md -text
+examples/clean-CLAUDE.md -text

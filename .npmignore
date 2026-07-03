@@ -1,0 +1,16 @@
+# Source and tests are not shipped; only compiled dist/ is published (see package.json "files").
+src/
+test/
+dist-test/
+tsconfig*.json
+.github/
+examples/
+docs/
+scripts/
+*.tgz
+.editorconfig
+.pre-commit-hooks.yaml
+action.yml
+LAUNCH.md
+CONTRIBUTING.md
+CODEBASE_MAP.md

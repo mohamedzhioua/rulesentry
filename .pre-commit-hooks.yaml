@@ -1,0 +1,10 @@
+- id: rulesentry
+  name: rulesentry
+  description: "Catch hidden / invisible-unicode instructions in AI-agent config & skill files"
+  entry: rulesentry scan
+  language: node
+  # Run once for the whole repo (rulesentry does its own discovery) rather than
+  # per-file, so it also catches files the commit did not touch.
+  pass_filenames: false
+  always_run: true
+  types: [text]
