@@ -65,7 +65,16 @@ export function renderPretty(report: Report, opts: PrettyOptions): string {
   }
 
   for (const file of filesWithFindings) {
-    lines.push(c(COLORS.bold, file.file));
+    const surface = file.receipt ? ` ${c(COLORS.gray, `[${file.receipt.surface}]`)}` : "";
+    lines.push(c(COLORS.bold, file.file) + surface);
+    if (file.receipt?.differs) {
+      lines.push(
+        c(
+          COLORS.gray,
+          `  receipt: what you see ≠ what the agent reads — visible sha256 ${file.receipt.visibleSha256.slice(0, 12)} vs agent-read ${file.receipt.agentReadSha256.slice(0, 12)}`,
+        ),
+      );
+    }
     const source = opts.sources.get(file.file);
     // Split the source once per file, not once per finding (avoids O(n²) on a
     // file that produces many findings on the same line).

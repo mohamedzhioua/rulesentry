@@ -3,7 +3,19 @@ import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { discover, isAgentFile } from "../src/discover.js";
+import { discover, isAgentFile, surfaceOf } from "../src/discover.js";
+
+test("surfaceOf classifies agent instruction surfaces", () => {
+  assert.equal(surfaceOf("CLAUDE.md"), "claude-md");
+  assert.equal(surfaceOf("sub/AGENTS.md"), "agents-md");
+  assert.equal(surfaceOf(".mcp.json"), "mcp-config");
+  assert.equal(surfaceOf(".claude/skills/x/SKILL.md"), "skill");
+  assert.equal(surfaceOf(".claude/commands/deploy.md"), "slash-command");
+  assert.equal(surfaceOf(".claude/agents/rev.md"), "subagent");
+  assert.equal(surfaceOf(".cursorrules"), "cursor-rules");
+  assert.equal(surfaceOf(".github/copilot-instructions.md"), "copilot-instructions");
+  assert.equal(surfaceOf("src/index.ts"), "other");
+});
 
 test("isAgentFile matches known agent config paths", () => {
   const yes = [

@@ -9,8 +9,9 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { discover, type DiscoverOptions } from "./discover.js";
+import { discover, surfaceOf, type DiscoverOptions } from "./discover.js";
 import { scanContent, type ScanOptions } from "./detect.js";
+import { buildReceipt } from "./receipt.js";
 import {
   compareFindings,
   summarize,
@@ -60,11 +61,17 @@ export function run(targets: string[], options: RunOptions = {}): RunResult {
       fileReports.push({ file: rel, findings: [], error: read.error });
       continue;
     }
+    const surface = surfaceOf(rel);
     const findings = scanContent(read.text, rel, {
       ...(options.disabledRules ? { disabledRules: options.disabledRules } : {}),
       homoglyph: options.homoglyph !== false,
     }).sort(compareFindings);
-    fileReports.push({ file: rel, findings });
+    for (const f of findings) f.surface = surface;
+    fileReports.push({
+      file: rel,
+      findings,
+      receipt: buildReceipt(read.text, rel),
+    });
   }
 
   return {

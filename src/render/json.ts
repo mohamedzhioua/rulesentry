@@ -19,6 +19,7 @@ export function renderJson(report: Report): string {
         byteOffset: finding.byteOffset,
         byteLength: finding.byteLength,
         message: finding.message,
+        ...(finding.surface !== undefined ? { surface: finding.surface } : {}),
         ...(finding.codePoints
           ? { codePoints: finding.codePoints.map((cp) => "U+" + cp.toString(16).toUpperCase().padStart(4, "0")) }
           : {}),
@@ -26,6 +27,9 @@ export function renderJson(report: Report): string {
         ...(finding.evidence !== undefined ? { evidence: finding.evidence } : {}),
       })),
     ),
+    receipts: report.files
+      .filter((f) => f.receipt)
+      .map((f) => f.receipt),
     readErrors: report.files
       .filter((f) => f.error)
       .map((f) => ({ file: f.file, error: f.error })),

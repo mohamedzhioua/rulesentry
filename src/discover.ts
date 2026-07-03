@@ -112,6 +112,54 @@ function isProbablyText(ext: string): boolean {
   return TEXT_EXTS.has(ext);
 }
 
+/** The kind of agent instruction surface a path represents. */
+export type Surface =
+  | "claude-md"
+  | "agents-md"
+  | "gemini-md"
+  | "conventions-md"
+  | "cursor-rules"
+  | "copilot-instructions"
+  | "windsurf-rules"
+  | "cline-rules"
+  | "aider"
+  | "skill"
+  | "slash-command"
+  | "subagent"
+  | "mcp-config"
+  | "claude-settings"
+  | "codex"
+  | "other";
+
+/** Classify a repo-relative path into the agent surface it belongs to. */
+export function surfaceOf(rel: string): Surface {
+  const norm = rel.replace(/\\/g, "/");
+  const base = norm.slice(norm.lastIndexOf("/") + 1);
+  const lower = base.toLowerCase();
+
+  if (base === ".mcp.json" || base === "mcp.json" || lower.endsWith(".mcp.json")) {
+    return "mcp-config";
+  }
+  if (lower === "skill.md") return "skill";
+  if (lower === "copilot-instructions.md" || lower.endsWith(".instructions.md")) {
+    return "copilot-instructions";
+  }
+  if (base === "CLAUDE.md" || base === "CLAUDE.local.md") return "claude-md";
+  if (base === "AGENTS.md" || base === "AGENT.md") return "agents-md";
+  if (base === "GEMINI.md") return "gemini-md";
+  if (base === "CONVENTIONS.md") return "conventions-md";
+  if (base === ".cursorrules" || underDir(norm, ".cursor/rules")) return "cursor-rules";
+  if (base === ".windsurfrules" || underDir(norm, ".windsurf/rules")) return "windsurf-rules";
+  if (base === ".clinerules" || underDir(norm, ".clinerules")) return "cline-rules";
+  if (base === ".aider.conf.yml") return "aider";
+  if (underDir(norm, ".claude/skills")) return "skill";
+  if (underDir(norm, ".claude/commands")) return "slash-command";
+  if (underDir(norm, ".claude/agents")) return "subagent";
+  if (base === "settings.json" && underDir(norm, ".claude")) return "claude-settings";
+  if (underDir(norm, ".codex")) return "codex";
+  return "other";
+}
+
 interface WalkResult {
   files: string[];
   skippedLarge: string[];

@@ -100,6 +100,7 @@ function toResult(finding: Finding, ruleIndex: Map<string, number>) {
     partialFingerprints: {
       rulesentryFingerprint: `${finding.ruleId}:${finding.file}:${finding.byteOffset}`,
     },
+    ...(finding.surface ? { properties: { surface: finding.surface } } : {}),
   };
 }
 

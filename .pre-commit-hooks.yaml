@@ -8,3 +8,12 @@
   pass_filenames: false
   always_run: true
   types: [text]
+
+- id: rulesentry-fix
+  name: rulesentry fix
+  description: "Strip invisible/deceptive characters from AI-agent config & skill files (auto-fix)"
+  entry: rulesentry fix --write
+  language: node
+  pass_filenames: false
+  always_run: true
+  types: [text]

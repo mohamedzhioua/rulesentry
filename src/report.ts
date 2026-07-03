@@ -6,6 +6,8 @@
  * drive exit codes and every output format (pretty / json / sarif).
  */
 
+import type { Receipt } from "./receipt.js";
+
 export type Severity = "critical" | "high" | "medium" | "low";
 
 export const SEVERITY_ORDER: Record<Severity, number> = {
@@ -58,6 +60,8 @@ export interface Finding {
   decoded?: string;
   /** The literal matched substring for the exec-string rules. */
   evidence?: string;
+  /** The agent instruction surface this finding's file belongs to. */
+  surface?: string;
 }
 
 export interface FileReport {
@@ -65,6 +69,8 @@ export interface FileReport {
   findings: Finding[];
   /** True when the file could not be read (permission, binary, gone). */
   error?: string;
+  /** Load-boundary receipt (present for successfully-read files). */
+  receipt?: Receipt;
 }
 
 export interface ScanStats {

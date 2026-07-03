@@ -75,6 +75,21 @@ test("explain on an unknown rule exits 2", () => {
   assert.equal(r.status, 2);
 });
 
+test("fix dry-run on a clean tree exits 0", () => {
+  const r = cli(["fix", "examples/clean-CLAUDE.md"]);
+  assert.equal(r.status, 0);
+  assert.match(r.stdout, /nothing to normalize/);
+});
+
+test("scan --format json includes the load-boundary receipt", () => {
+  const r = cli(["scan", "examples/malicious-CLAUDE.md", "--format", "json"]);
+  const parsed = JSON.parse(r.stdout);
+  assert.ok(Array.isArray(parsed.receipts));
+  assert.equal(parsed.receipts[0].differs, true);
+  assert.match(parsed.receipts[0].gitBlobSha1, /^[0-9a-f]{40}$/);
+  assert.notEqual(parsed.receipts[0].visibleSha256, parsed.receipts[0].agentReadSha256);
+});
+
 test("--fail-on high does not fail on a medium-only finding", () => {
   // The clean fixture has no findings; use --disable to reduce malicious to
   // medium-and-below by turning off the high/critical rules.

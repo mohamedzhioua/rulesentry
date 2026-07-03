@@ -7,6 +7,7 @@
  *   explain <RULE>      Print the docs for a rule (e.g. RS003)
  *   list-rules          List every rule
  *   demo                Scan a built-in malicious sample (great for a GIF)
+ *   fix [paths...]      Normalize away invisible chars (dry-run; --write applies)
  *
  * Zero runtime dependencies: argument parsing is hand-rolled and intentionally
  * small. Exit code is 0 when nothing at/above --fail-on is found, else 1.
@@ -29,6 +30,7 @@ import {
 import { RULES, ruleList } from "./rules.js";
 import { scanContent } from "./detect.js";
 import { classify } from "./unicode.js";
+import { fix as runFix, type FixResult } from "./fix.js";
 import { VERSION } from "./version.js";
 
 type Format = "pretty" | "json" | "sarif";
@@ -45,6 +47,7 @@ interface Parsed {
   disabled: Set<RuleId>;
   all: boolean;
   quiet: boolean;
+  write: boolean;
   rest: string[];
 }
 
@@ -52,6 +55,7 @@ const HELP = `rulesentry ${VERSION} — catch hidden instructions smuggled into 
 
 USAGE
   rulesentry [scan] [paths...] [options]
+  rulesentry fix [paths...] [--write]
   rulesentry explain <RULE>
   rulesentry list-rules
   rulesentry demo
@@ -68,6 +72,15 @@ SCAN OPTIONS
   -q, --quiet           suppress the "no findings" success line
   -v, --version         print version
   -h, --help            print this help
+
+FIX OPTIONS (rulesentry fix)
+  --write               apply the canonical form to disk (default: dry-run)
+  --all                 include every text file under given dirs
+
+\`fix\` removes only the unambiguously-invisible characters (zero-width, Tag, bidi,
+variation selectors, control) and normalizes deceptive whitespace. Homoglyphs and
+executable strings are never auto-rewritten — they are reported for human review.
+Dry-run exits 1 when changes are pending (CI-friendly); --write applies them.
 
 With no paths, rulesentry discovers agent config/skill/rules/MCP files under the
 current directory (CLAUDE.md, AGENTS.md, .cursorrules, .github/copilot-instructions.md,
@@ -87,12 +100,13 @@ function parse(argv: string[]): Parsed {
     disabled: new Set<RuleId>(),
     all: false,
     quiet: false,
+    write: false,
     rest: [],
   };
 
   const args = [...argv];
   // First non-flag token may be a command.
-  const commands = new Set(["scan", "explain", "list-rules", "demo"]);
+  const commands = new Set(["scan", "explain", "list-rules", "demo", "fix"]);
   if (args.length > 0 && args[0] && commands.has(args[0])) {
     out.command = args.shift()!;
   }
@@ -123,6 +137,9 @@ function parse(argv: string[]): Parsed {
         break;
       case "--all":
         out.all = true;
+        break;
+      case "--write":
+        out.write = true;
         break;
       case "--no-color":
         out.color = false;
@@ -188,6 +205,7 @@ function filterReport(report: Report, min: Severity): Report {
     file: f.file,
     findings: f.findings.filter((x) => SEVERITY_ORDER[x.severity] >= minRank),
     ...(f.error ? { error: f.error } : {}),
+    ...(f.receipt ? { receipt: f.receipt } : {}),
   }));
   return summarize(files, report.version);
 }
@@ -250,6 +268,8 @@ async function main(argv: string[]): Promise<number> {
       return explain(parsed.rest[0]);
     case "demo":
       return demo(parsed);
+    case "fix":
+      return fixCmd(parsed);
     case "scan":
       return scan(parsed);
     default:
@@ -281,6 +301,69 @@ function scan(parsed: Parsed): number {
     }
   }
   return exitFail ? 1 : 0;
+}
+
+function fixCmd(parsed: Parsed): number {
+  const result: FixResult = runFix(parsed.paths, {
+    write: parsed.write,
+    all: parsed.all,
+  });
+  const color = parsed.color;
+  const c = (code: string, t: string) => (color ? `${code}${t}\x1b[0m` : t);
+  const GRAY = "\x1b[90m";
+  const BOLD = "\x1b[1m";
+  const GREEN = "\x1b[32m";
+  const YELLOW = "\x1b[33m";
+
+  const changed = result.files.filter((f) => f.changed);
+  const errors = result.files.filter((f) => f.error);
+
+  if (changed.length === 0 && errors.length === 0) {
+    process.stdout.write(
+      c(GREEN, "✓ rulesentry fix: nothing to normalize") +
+        c(GRAY, ` (${result.files.length} file${result.files.length === 1 ? "" : "s"})`) +
+        "\n",
+    );
+    return 0;
+  }
+
+  for (const f of changed) {
+    const verb = f.applied ? "normalized" : "would normalize";
+    process.stdout.write(`${c(BOLD, f.file)} ${c(GRAY, `[${f.surface}]`)}\n`);
+    process.stdout.write(
+      `  ${verb} ${f.neutralized} invisible/deceptive character(s)\n`,
+    );
+    process.stdout.write(
+      c(GRAY, `  git blob ${f.beforeBlob.slice(0, 12)} → ${f.afterBlob.slice(0, 12)}\n`),
+    );
+    if (f.reviewNeeded > 0) {
+      process.stdout.write(
+        c(
+          YELLOW,
+          `  ${f.reviewNeeded} finding(s) still need human review (homoglyph/executable) — run: rulesentry scan ${f.file}\n`,
+        ),
+      );
+    }
+  }
+  for (const f of errors) {
+    process.stdout.write(c(GRAY, `  ~ ${f.file}: ${f.error}\n`));
+  }
+
+  const applied = changed.filter((f) => f.applied).length;
+  if (parsed.write) {
+    process.stdout.write(
+      c(GREEN, `\n${applied} file(s) normalized in place.`) + "\n",
+    );
+    return 0;
+  }
+  process.stdout.write(
+    c(
+      YELLOW,
+      `\n${changed.length} file(s) would change. Re-run with --write to apply.`,
+    ) + "\n",
+  );
+  // Dry-run with pending changes fails so CI catches un-normalized files.
+  return 1;
 }
 
 function loadSources(report: Report): Map<string, string> {

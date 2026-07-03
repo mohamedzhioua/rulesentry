@@ -74,6 +74,8 @@ Zero-config — with no arguments it discovers the agent files in your repo and 
 npx rulesentry scan              # discover & scan agent config/skill/rules/MCP files
 npx rulesentry scan path/to/dir  # scan a specific path
 npx rulesentry scan --format sarif -o rulesentry.sarif   # for GitHub code scanning
+npx rulesentry fix               # preview a safe normalization (dry-run)
+npx rulesentry fix --write       # strip the invisible characters in place
 npx rulesentry explain RS003     # what a rule means and how to fix it
 npx rulesentry list-rules        # every rule
 ```
@@ -144,10 +146,37 @@ repos:
 
 `rulesentry explain <RS0xx>` prints the full description, remediation, and references.
 
+## Fix / normalize (opt-in)
+
+`rulesentry fix` rewrites files into a safe canonical form — but only for the classes
+where "safe" is unambiguous:
+
+```bash
+npx rulesentry fix           # dry-run: shows what would change, exits 1 if anything is pending (CI-friendly)
+npx rulesentry fix --write   # apply it
+```
+
+It **removes the unambiguously-invisible characters** (zero-width, Tag, bidi controls,
+variation selectors, control chars) and **normalizes deceptive whitespace** to a plain
+space. It never touches homoglyphs or executable strings (`!`cmd``, `curl | bash`) —
+rewriting those depends on intent, so they stay flag-only for human review. Every run
+prints the before/after git blob hash, and there's a `rulesentry-fix` pre-commit hook.
+
+## Load-boundary receipt
+
+Every scanned file gets a small, auditable receipt (in `--format json`, and summarized in
+the pretty output): the **git blob hash**, a **`visibleSha256`** (what a human reviewer
+perceives — invisibles stripped, homoglyphs mapped to their look-alike) and an
+**`agentReadSha256`** (what the agent actually ingests). When they differ, code review has
+a verifiable fact, not just a warning: *the approver signed off on hash X; the agent reads
+hash Y.* Each finding is also tagged with the instruction **surface** it came from
+(`claude-md`, `agents-md`, `skill`, `mcp-config`, `cursor-rules`, …).
+
 ## Output formats
 
-- **pretty** (default) — the human reveal diff, quiet on success.
-- **json** — `--format json`; stable shape with decoded payloads and `U+XXXX` code points.
+- **pretty** (default) — the human reveal diff + receipt line, quiet on success.
+- **json** — `--format json`; findings (with `surface`), decoded payloads, `U+XXXX` code
+  points, and a `receipts` array.
 - **sarif** — `--format sarif`; SARIF 2.1.0 with `security-severity` for GitHub code scanning.
 
 ## Why not …?

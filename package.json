@@ -1,6 +1,6 @@
 {
   "name": "rulesentry",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Catches hidden and invisible-unicode instructions smuggled into AI coding-agent config and skill files (CLAUDE.md, AGENTS.md, .cursorrules, copilot-instructions.md, MCP, skills). Zero-config.",
   "keywords": [
     "security",
