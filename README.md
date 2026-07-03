@@ -3,13 +3,17 @@
 **Your `CLAUDE.md` looks clean. Your AI agent reads something else.**
 rulesentry catches hidden and invisible-unicode instructions smuggled into AI coding-agent
 config and skill files — `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `copilot-instructions.md`,
-MCP configs, and skills. Zero-config, zero dependencies.
+MCP configs, and skills. Zero-config, zero dependencies, MIT-licensed.
 
 ```bash
 npx rulesentry scan
 ```
 
-<!-- Replace with an asciinema/GIF before launch: docs/demo.gif -->
+<p align="center">
+  <img src="./docs/demo.svg" alt="rulesentry scan output: a CLAUDE.md whose hidden Unicode Tag characters decode to an exfiltration instruction the agent reads but a human can't see" width="100%">
+</p>
+
+<details><summary>Full terminal output (text)</summary>
 
 ```
 examples/malicious-CLAUDE.md
@@ -29,6 +33,8 @@ examples/malicious-CLAUDE.md
 
 8 findings (1 critical, 5 high, 2 medium) in 1 of 1 file
 ```
+
+</details>
 
 Try it right now, no install, no config:
 
@@ -152,13 +158,13 @@ repos:
 | **"What the agent reads" reveal diff** | ✅ core feature | — | — | — |
 | **Decodes tag / variation-selector smuggling** | ✅ | — | — | — |
 | **Byte-offset provenance + SARIF** | ✅ | partial | — | — |
-| **License** | **Apache-2.0** (enterprise-friendly) | AGPL-3.0 | Apache-2.0 | proprietary (Snyk) |
+| **License** | **MIT** (enterprise-friendly) | AGPL-3.0 | Apache-2.0 | proprietary (Snyk) |
 | **Dependencies** | **zero** | many | — | — |
 | **Scope** | one thing, done perfectly | everything | skills | MCP |
 
 MEDUSA is a great broad scanner — but it's **AGPL-3.0**, which many companies can't adopt.
-rulesentry is a **focused, permissively-licensed, zero-dependency** tool for the single scariest
-gap: instructions that are invisible to the reviewer but plain to the agent.
+rulesentry is a **focused, MIT-licensed, zero-dependency** tool for the single scariest gap:
+instructions that are invisible to the reviewer but plain to the agent.
 
 ## Dogfooded
 
@@ -185,4 +191,4 @@ remote/obfuscated exec strings. No network, no telemetry, no dependencies.
 
 ## License
 
-[Apache-2.0](./LICENSE) © Mohamed Zhioua
+[MIT](./LICENSE) © Mohamed Zhioua

@@ -4,15 +4,18 @@
 > the actual posting. Based on the evidence-based playbook in the opportunity
 > catalog (zizmor formula + concentrated 48-hour multi-channel spike).
 
-## Pre-flight checklist (do these first)
+## Pre-flight checklist
 
-- [ ] `npm publish` (package name `rulesentry` confirmed free on npm).
-- [ ] Push an annotated tag `v0.1.0` and publish the GitHub Release **as a normal
-      release** (this is a 0.1.0, not a pre-release — but consider `-beta.1` first
-      if you want a soak window; if so, check "Set as a pre-release").
-- [ ] Record `docs/demo.gif` (asciinema → GIF) of `npx rulesentry demo` and the
-      malicious-fixture scan; drop it above the fold in the README (replace the
-      HTML comment placeholder). ~15% star lift from a demo above the fold.
+Done (shipped in the build):
+
+- [x] `npm publish` — `rulesentry@0.1.0` published to npm (`npx rulesentry` works).
+- [x] Annotated tag `v0.1.0` pushed; GitHub Release published and promoted to latest.
+- [x] Above-the-fold demo visual: `docs/demo.svg` (self-contained, renders on GitHub).
+
+Still yours to do before the spike:
+
+- [ ] (Optional polish) Record an actual `docs/demo.gif` with asciinema →
+      `agg`/`terminalizer` of `npx rulesentry demo`, if you want motion over the SVG.
 - [ ] Confirm `npx rulesentry@latest demo` works from a clean machine.
 - [ ] Add repo topics: `security`, `ai`, `prompt-injection`, `unicode`,
       `claude`, `cursor`, `copilot`, `mcp`, `supply-chain`, `sarif`.
@@ -51,7 +54,7 @@ shows you *what the agent reads vs. what you see*, with exact byte offsets. It
 decodes the tag-character and variation-selector channels so you see the actual
 smuggled message. `npx rulesentry demo` shows it on a safe sample.
 
-It's Apache-2.0 (the broad scanner in this space, MEDUSA, is AGPL-3.0, which a
+It's MIT (the broad scanner in this space, MEDUSA, is AGPL-3.0, which a
 lot of companies can't adopt), and it runs as a GitHub Action / pre-commit hook
 with SARIF output. I built it by dogfooding on my own agent-tooling repo — 129
 config/skill files, clean.
@@ -86,7 +89,7 @@ before the model reads the file.
 
 rulesentry scans for exactly this and prints "what you see vs. what the agent
 reads", decoding the smuggled payload with byte offsets. Zero-config, zero deps,
-Apache-2.0, runs as a GitHub Action / pre-commit hook, SARIF output.
+MIT, runs as a GitHub Action / pre-commit hook, SARIF output.
 
 npx rulesentry demo   # safe built-in sample
 
@@ -110,7 +113,7 @@ innocent line. You see "Never commit secrets." The agent reads both.
 decodes the hidden payload, with exact byte offsets. Also catches bidi overrides
 (Trojan Source), homoglyphs, and Claude Code's !`cmd` dynamic-exec prefix.
 
-4/ Zero-config, zero dependencies, Apache-2.0. Runs as a GitHub Action / pre-commit
+4/ Zero-config, zero dependencies, MIT. Runs as a GitHub Action / pre-commit
 hook with SARIF output.
 
     npx rulesentry demo
